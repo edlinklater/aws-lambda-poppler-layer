@@ -24,7 +24,7 @@ WORKDIR /tmp
 RUN set -xe \
     && yum makecache \
     && yum groupinstall -y "Development Tools"  --setopt=group_package_types=mandatory,default \
-    && yum install -y python3-devel openssl-devel gcc10 gcc10-c++ nss-devel libcurl-devel
+    && yum install -y python3-devel openssl-devel gcc10 gcc10-c++ nss-devel
 
 # Install CMake
 
@@ -436,10 +436,9 @@ RUN set -xe; \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
     -DCMAKE_PREFIX_PATH=${INSTALL_DIR} \
-    -DCURL_LIBRARY="/usr/lib64/libcurl.so" \
-    -DCURL_INCLUDE_DIR="/usr/include/curl" \
     -DENABLE_UNSTABLE_API_ABI_HEADERS=ON \
     -DENABLE_GPGME=OFF \
+    -DENABLE_LIBCURL=OFF \
     -DENABLE_QT5=OFF \
     -DENABLE_QT6=OFF \
     -DTESTDATADIR=${POPPLER_TEST_DIR} \
