@@ -31,7 +31,7 @@ RUN set -xe \
 RUN  set -xe \
     && mkdir -p /tmp/cmake \
     && cd /tmp/cmake \
-    && curl -Ls  https://cmake.org/files/v3.26/cmake-3.26.4.tar.gz \
+    && curl -Ls  https://cmake.org/files/v3.28/cmake-3.28.1.tar.gz \
     | tar xzC /tmp/cmake --strip-components=1 \
     && sed -i '/"lib64"/s/64//' Modules/GNUInstallDirs.cmake \
     && ./bootstrap \
@@ -51,7 +51,7 @@ RUN  set -xe \
     | tar xJvC /tmp/gobject-introspection --strip-components=1 \
     && mkdir build \
     && cd build \
-    && pip3 install ninja meson \
+    && pip3 install ninja meson packaging \
     && meson setup \
     --prefix=/usr/local \
     --buildtype=release \
@@ -64,7 +64,7 @@ RUN  set -xe \
 RUN set -xe \
     && mkdir -p /tmp/boost \
     && cd /tmp/boost \
-    && curl -Ls https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_1_82_0.tar.gz \
+    && curl -Ls https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz \
     | tar xzC /tmp/boost --strip-components=1 \
     && sed -i '/#include.*phoenix.*tuple.hpp.*/d' boost/phoenix/stl.hpp \
     && ./bootstrap.sh \
@@ -134,7 +134,7 @@ RUN set -xe; \
 
 # Install FreeType2 (https://github.com/aseprite/freetype2/releases)
 
-ENV VERSION_FREETYPE2=2.13.0
+ENV VERSION_FREETYPE2=2.13.2
 ENV FREETYPE2_BUILD_DIR=${BUILD_DIR}/freetype2
 
 RUN set -xe; \
@@ -190,7 +190,7 @@ RUN set -xe; \
 
 # Install Fontconfig (https://github.com/freedesktop/fontconfig/releases)
 
-ENV VERSION_FONTCONFIG=2.14.2
+ENV VERSION_FONTCONFIG=2.15.0
 ENV FONTCONFIG_BUILD_DIR=${BUILD_DIR}/fontconfig
 
 RUN set -xe; \
@@ -274,7 +274,7 @@ RUN set -xe; \
 
 # Install Libpng (https://github.com/glennrp/libpng/releases)
 
-ENV VERSION_LIBPNG=1.6.39
+ENV VERSION_LIBPNG=1.6.40
 ENV LIBPNG_BUILD_DIR=${BUILD_DIR}/libpng
 
 RUN set -xe; \
@@ -298,7 +298,7 @@ RUN set -xe; \
 
 # Install LibTIFF (http://download.osgeo.org/libtiff)
 
-ENV VERSION_LIBTIFF=4.5.1
+ENV VERSION_LIBTIFF=4.6.0
 ENV LIBTIFF_BUILD_DIR=${BUILD_DIR}/tiff
 
 RUN set -xe; \
@@ -322,7 +322,7 @@ RUN set -xe; \
 
 # Install Pixman (https://www.cairographics.org/releases)
 
-ENV VERSION_PIXMAN=0.42.2
+ENV VERSION_PIXMAN=0.43.0
 ENV PIXMAN_BUILD_DIR=${BUILD_DIR}/pixman
 
 RUN set -xe; \
@@ -341,15 +341,15 @@ RUN set -xe; \
     CXX="/usr/bin/gcc10-c++" \
     CPPFLAGS="-I${INSTALL_DIR}/include  -I/usr/include" \
     LDFLAGS="-L${INSTALL_DIR}/lib64 -L${INSTALL_DIR}/lib" \
-    ./configure  \
+    meson setup build/ \
     --prefix=${INSTALL_DIR} \
-    --disable-static \
-    && make \
-    && make install
+    && cd build \
+    && ninja \
+    && ninja install
 
 # Install Cairo (http://www.linuxfromscratch.org/blfs/view/svn/x/cairo.html)
 
-ENV VERSION_CAIRO=1.17.6
+ENV VERSION_CAIRO=1.18.0
 ENV CAIRO_BUILD_DIR=${BUILD_DIR}/cairo
 
 RUN set -xe; \
@@ -365,16 +365,29 @@ RUN set -xe; \
     CXX="/usr/bin/gcc10-c++" \
     CPPFLAGS="-I${INSTALL_DIR}/include  -I/usr/include" \
     LDFLAGS="-L${INSTALL_DIR}/lib64 -L${INSTALL_DIR}/lib" \
-    ./configure  \
+    meson setup build/ \
     --prefix=${INSTALL_DIR} \
-    --disable-static \
-    --enable-tee \
-    && make \
-    && make install
+    --buildtype=release \
+    && cd build \
+    && ninja \
+    && ninja install
+
+#RUN set -xe; \
+#    CFLAGS="" \
+#    CC="/usr/bin/gcc10-gcc" \
+#    CXX="/usr/bin/gcc10-c++" \
+#    CPPFLAGS="-I${INSTALL_DIR}/include  -I/usr/include" \
+#    LDFLAGS="-L${INSTALL_DIR}/lib64 -L${INSTALL_DIR}/lib" \
+#    ./configure  \
+#    --prefix=${INSTALL_DIR} \
+#    --disable-static \
+#    --enable-tee \
+#    && make \
+#    && make install
 
 # Install Little CMS (https://downloads.sourceforge.net/lcms)
 
-ENV VERSION_LCMS=2-2.15
+ENV VERSION_LCMS=2-2.16
 ENV LCMS_BUILD_DIR=${BUILD_DIR}/lcms
 
 RUN set -xe; \
@@ -398,7 +411,7 @@ RUN set -xe; \
 
 # Install Poppler (https://gitlab.freedesktop.org/poppler/poppler/-/tags)
 
-ENV VERSION_POPPLER=23.06.0
+ENV VERSION_POPPLER=24.01.0
 ENV POPPLER_BUILD_DIR=${BUILD_DIR}/poppler
 ENV POPPLER_TEST_DIR=${BUILD_DIR}/poppler-test
 
@@ -424,6 +437,11 @@ RUN set -xe; \
     -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
     -DCMAKE_PREFIX_PATH=${INSTALL_DIR} \
     -DENABLE_UNSTABLE_API_ABI_HEADERS=ON \
+    -DENABLE_NSS3=OFF \
+    -DENABLE_GPGME=OFF \
+    -DENABLE_LIBCURL=OFF \
+    -DENABLE_QT5=OFF \
+    -DENABLE_QT6=OFF \
     -DTESTDATADIR=${POPPLER_TEST_DIR} \
     && make \
     && make install
