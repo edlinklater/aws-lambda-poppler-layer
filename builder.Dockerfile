@@ -1,4 +1,4 @@
-FROM amazonlinux:2
+FROM amazonlinux:2023
 
 ENV SOURCE_DIR="/opt"
 ENV INSTALL_DIR="/opt"
